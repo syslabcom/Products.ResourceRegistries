@@ -292,9 +292,32 @@ class JSRegistryTool(UniqueObject, SimpleItem, PropertyManager):
             output += " */\n"
         scripts = self.getScriptsDict()
 
-        for id in ids:
+        myids = ids
+        for id in myids:
+            myid = id
             try:
-                obj = getattr(context, id)
+                #obj = context.restrictedTraverse(myid)
+                #obj = getattr(context, id)
+                if id.find('/') < 0: 
+                   obj = getattr(context, id) 
+                   #obj = context.restrictedTraverse(id) 
+                else: 
+                    import pdb; pdb.set_trace() 
+                    partobj=context 
+                    newpartobj = None 
+                    for part in id.split('/'): 
+                        newpartobj=getattr(partobj, part, None) 
+                        if newpartobj is partobj: 
+                            partobj = None 
+                        if partobj is None: 
+                            break 
+                        partobj=newpartobj 
+                    if partobj is not context: 
+                        # found obj 
+                        obj = partobj 
+                    else: 
+                        obj = None 
+
             except AttributeError, KeyError:
                 output += "\n/* XXX ERROR -- could not find '%s' XXX */\n"%(id)
                 content=""
