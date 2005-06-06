@@ -302,7 +302,7 @@ class JSRegistryTool(UniqueObject, SimpleItem, PropertyManager):
                    obj = getattr(context, id) 
                    #obj = context.restrictedTraverse(id) 
                 else: 
-                    import pdb; pdb.set_trace() 
+                    #import pdb; pdb.set_trace() 
                     partobj=context 
                     newpartobj = None 
                     for part in id.split('/'): 
