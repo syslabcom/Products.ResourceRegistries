@@ -10,7 +10,24 @@ from Products.ResourceRegistries import config
 from Products.ResourceRegistries import permissions
 from Products.ResourceRegistries.interfaces import IJSRegistry
 from Products.ResourceRegistries.tools.BaseRegistry import BaseRegistryTool
+from Products.ResourceRegistries.tools.BaseRegistry import Resource
 
+
+class JavaScript(Resource):
+    security = ClassSecurityInfo()
+
+    def __init__(self, id, **kwargs):
+        Resource.__init__(self, id, **kwargs)
+        self._data['inline'] = kwargs.get('inline', False)
+
+    security.declarePublic('getInline')
+    def getInline(self):
+        return self._data['inline']
+
+    def setInline(self, inline):
+        self._data['inline'] = inline
+
+InitializeClass(JavaScript)
 
 class JSRegistryTool(BaseRegistryTool):
     """A Plone registry for managing the linking to Javascript files."""
@@ -41,7 +58,7 @@ class JSRegistryTool(BaseRegistryTool):
         },
     ) + BaseRegistryTool.manage_options
 
-    attributes_to_compare = ('expression', 'inline')
+    attributes_to_compare = ('getExpression', 'getCookable', 'getInline')
     filename_base = 'ploneScripts'
     filename_appendix = '.js'
     cache_duration = config.JS_CACHE_DURATION
@@ -53,6 +70,7 @@ class JSRegistryTool(BaseRegistryTool):
  * originating files are separated by ----- filename.js -----
  */
 """
+    resource_class = JavaScript
 
     #
     # Private Methods
@@ -113,12 +131,11 @@ class JSRegistryTool(BaseRegistryTool):
     security.declareProtected(permissions.ManagePortal, 'registerScript')
     def registerScript(self, id, expression='', inline=False, enabled=True, cookable=True):
         """Register a script."""
-        script = {}
-        script['id'] = id
-        script['expression'] = expression
-        script['inline'] = inline
-        script['enabled'] = enabled
-        script['cookable'] = cookable
+        script = JavaScript(id,
+                            expression=expression,
+                            inline=inline,
+                            enabled=enabled,
+                            cookable=cookable)
         self.storeResource(script)
 
     security.declareProtected(permissions.View, 'getContentType')

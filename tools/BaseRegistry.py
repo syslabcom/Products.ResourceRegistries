@@ -2,7 +2,7 @@ import random
 
 from DateTime import DateTime
 from zExceptions import NotFound
-from Globals import InitializeClass
+from Globals import InitializeClass, Persistent, PersistentMapping
 from AccessControl import ClassSecurityInfo, Unauthorized
 
 from OFS.Image import File
@@ -21,6 +21,53 @@ from Products.ResourceRegistries import permissions
 from Products.ResourceRegistries.interfaces import IResourceRegistry
 
 
+class Resource(Persistent):
+    security = ClassSecurityInfo()
+
+    def __init__(self, id, **kwargs):
+        self._data = PersistentMapping()
+        self._data['id'] = id
+        self._data['expression'] = kwargs.get('expression', '')
+        self._data['enabled'] = kwargs.get('enabled', True)
+        self._data['cookable'] = kwargs.get('cookable', True)
+
+    def copy(self):
+        result = self.__class__(self.getId())
+        for key, value in self._data.items():
+            if key != 'id':
+                result._data[key] = value
+        return result
+
+    security.declarePublic('getId')
+    def getId(self):
+        return self._data['id']
+
+    def _setId(self, id):
+        self._data['id'] = id
+
+    security.declarePublic('getExpression')
+    def getExpression(self):
+        return self._data['expression']
+
+    def setExpression(self, expression):
+        self._data['expression'] = expression
+
+    security.declarePublic('getEnabled')
+    def getEnabled(self):
+        return self._data['enabled']
+
+    def setEnabled(self, enabled):
+        self._data['enabled'] = enabled
+
+    security.declarePublic('getCookable')
+    def getCookable(self):
+        return self._data['cookable']
+
+    def setCookable(self, cookable):
+        self._data['cookable'] = cookable
+
+InitializeClass(Resource)
+
 class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     """Base class for a Plone registry managing resource files."""
 
@@ -28,11 +75,12 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     __implements__ = (SimpleItem.__implements__, IResourceRegistry)
     manage_options = SimpleItem.manage_options
 
-    attributes_to_compare = ('expression',)
+    attributes_to_compare = ('getExpression', 'getCookable')
     filename_base = 'ploneResources'
     filename_appendix = '.res'
     merged_output_prefix = ''
     cache_duration = 3600
+    resource_class = Resource
 
     #
     # Private Methods
@@ -71,13 +119,13 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     def validateId(self, id, existing):
         """Safeguard against duplicate ids."""
         for sheet in existing:
-            if sheet.get('id') == id:
+            if sheet.getId() == id:
                 raise ValueError, 'Duplicate id %s' %(id)
 
     security.declarePrivate('storeResource')
     def storeResource(self, resource):
         """Store a resource."""
-        self.validateId(resource.get('id'), self.getResources())
+        self.validateId(resource.getId(), self.getResources())
         resources = list(self.resources)
         resources.append(resource)
         self.resources = tuple(resources)
@@ -102,14 +150,14 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
         resources = self.getResources()
         d = {}
         for s in resources:
-            d[s['id']] = s
+            d[s.getId()] = s
         return d
 
     security.declarePrivate('compareResources')
     def compareResources(self, s1, s2):
         """Check if two resources are compatible."""
         for attr in self.attributes_to_compare:
-            if s1.get(attr) != s2.get(attr):
+            if getattr(s1, attr)() != getattr(s2, attr)():
                 return False
         return True
 
@@ -138,7 +186,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     security.declarePrivate('cookResources')
     def cookResources(self):
         """Cook the stored resources."""
-        resources = [r for r in self.getResources() if r.get('enabled')]
+        resources = [r for r in self.getResources() if r.getEnabled()]
         self.concatenatedresources = {}
         self.cookedresources = ()
         results = []
@@ -146,18 +194,16 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
             if results:
                 previtem = results[-1]
                 if not self.getDebugMode() and \
-                   resource.get('cookable', True) and \
-                   previtem.get('cookable', True) and \
                    self.compareResources(resource, previtem):
-                    res_id = resource.get('id')
-                    prev_id = previtem.get('id')
+                    res_id = resource.getId()
+                    prev_id = previtem.getId()
                     self.finalizeResourceMerging(resource, previtem)
                     if self.concatenatedresources.has_key(prev_id):
                         self.concatenatedresources[prev_id].append(res_id)
                     else:
                         magic_id = self.generateId()
                         self.concatenatedresources[magic_id] = [prev_id, res_id]
-                        previtem['id'] = magic_id
+                        previtem._setId(magic_id)
                 else:
                     results.append(resource)
             else:
@@ -165,7 +211,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
 
         resources = self.getResources()
         for resource in resources:
-            self.concatenatedresources[resource['id']] = [resource['id']]
+            self.concatenatedresources[resource.getId()] = [resource.getId()]
         self.cookedresources = tuple(results)
 
     security.declarePrivate('evaluateExpression')
@@ -328,18 +374,17 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     security.declareProtected(permissions.ManagePortal, 'registerResource')
     def registerResource(self, id, expression='', enabled=True, cookable=True):
         """Register a resource."""
-        resource = {}
-        resource['id'] = id
-        resource['expression'] = expression
-        resource['enabled'] = enabled
-        resource['cookable'] = cookable
+        resource = Resource(id,
+                            expression=expression,
+                            enabled=enabled,
+                            cookable=cookable)
         self.storeResource(resource)
 
     security.declareProtected(permissions.ManagePortal, 'unregisterResource')
     def unregisterResource(self, id):
         """Unregister a registered resource."""
         resources = [item for item in self.getResources()
-                     if item.get('id') != id]
+                     if item.getId() != id]
         self.resources = tuple(resources)
         self.cookResources()
 
@@ -349,11 +394,16 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
         self.validateId(new_id, self.getResources())
         resources = list(self.resources)
         for resource in resources:
-            if resource.get('id') == old_id:
-                resource['id'] = new_id
+            if resource.getId() == old_id:
+                resource._setId(new_id)
                 break
         self.resources = tuple(resources)
         self.cookResources()
+
+    security.declareProtected(permissions.ManagePortal, 'getResourceIds')
+    def getResourceIds(self):
+        """Return the ids of all resources."""
+        return tuple([x.getId() for x in self.resources])
 
     security.declareProtected(permissions.ManagePortal, 'getResources')
     def getResources(self):
@@ -361,7 +411,34 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
 
         For management screens.
         """
-        return tuple([item.copy() for item in self.resources])
+        result = []
+        for item in self.resources:
+            if isinstance(item, dict):
+                # BBB we used dicts before
+                item = item.copy()
+                item_id = item['id']
+                del item['id']
+                obj = self.resource_class(item_id, **item)
+                result.append(obj)
+            else:
+                result.append(item.copy())
+        return tuple(result)
+
+    security.declareProtected(permissions.ManagePortal, 'getCookedResources')
+    def getCookedResources(self):
+        """Get the cooked resource data."""
+        result = []
+        for item in self.cookedresources:
+            if isinstance(item, dict):
+                # BBB we used dicts before
+                item = item.copy()
+                item_id = item['id']
+                del item['id']
+                obj = self.resource_class(item_id, **item)
+                result.append(obj)
+            else:
+                result.append(item.copy())
+        return tuple(result)
 
     security.declareProtected(permissions.ManagePortal, 'moveResource')
     def moveResource(self, id, position):
@@ -380,8 +457,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     security.declareProtected(permissions.ManagePortal, 'getResourcePosition')
     def getResourcePosition(self, id):
         """Get the position (order) of an resource given its id."""
-        resources = list(self.getResources())
-        resource_ids = [item.get('id') for item in resources]
+        resource_ids = list(self.getResourceIds())
         try:
             return resource_ids.index(id)
         except ValueError:
@@ -404,11 +480,11 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     security.declareProtected(permissions.View, 'getEvaluatedResources')
     def getEvaluatedResources(self, context):
         """Return the filtered evaluated resources."""
-        results = self.cookedresources
+        results = self.getCookedResources()
 
         # filter results by expression
         results = [item for item in results
-                   if self.evaluateExpression(item.get('expression'), context)]
+                   if self.evaluateExpression(item.getExpression(), context)]
 
         # filter out resources to which the user does not have access
         # this is mainly cosmetic but saves raising lots of Unauthorized
@@ -424,7 +500,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
             #If we don't have a portal object, just let'em through - the stylesheets will raise
             # an Unauthorized when requested though
             for item in results:
-                id = item.get('id')
+                id = item.getId()
                 if not id.startswith(self.filename_base):
                     try:
                         obj = portal.restrictedTraverse(id)
