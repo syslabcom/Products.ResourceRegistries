@@ -644,8 +644,15 @@ class TestResourcePermissions(CSSRegistryTestCase.CSSRegistryTestCase):
         script.manage_permission('Access contents information',['Manager'], acquire=0)
         self.setRoles(['Member'])
 
+    def testUnauthorizedGetItem(self):
+        try:
+            content = str(self.tool['testroot.js'])
+        except Unauthorized:
+            return
 
-    def testGetItemTraversal(self):
+        self.fail()
+
+    def testUnauthorizedTraversal(self):
         try:
             content = str(self.portal.restrictedTraverse('portal_javascripts/testroot.js'))
         except Unauthorized:
@@ -686,6 +693,20 @@ class TestResourcePermissions(CSSRegistryTestCase.CSSRegistryTestCase):
         self.failIf('red' in content)
         self.failUnless('not authorized' in content)
         self.failUnless('running' in content)
+
+    def testAuthorizedGetItem(self):
+        self.setRoles(['Manager'])
+        try:
+            content = str(self.tool['testroot.js'])
+        except Unauthorized:
+            self.fail()
+
+    def testAuthorizedTraversal(self):
+        self.setRoles(['Manager'])
+        try:
+            content = str(self.portal.restrictedTraverse('portal_css/testroot.js'))
+        except Unauthorized:
+            self.fail()
 
 class TestMergingDisabled(CSSRegistryTestCase.CSSRegistryTestCase):
 
