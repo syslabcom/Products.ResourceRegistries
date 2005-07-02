@@ -894,6 +894,53 @@ class TestCSSDefaults(CSSRegistryTestCase.CSSRegistryTestCase):
         self.failUnless('** Plone style sheet for CSS2-capable browsers.' in o)
 
 
+class TestResourceObjects(CSSRegistryTestCase.CSSRegistryTestCase):
+
+    def afterSetUp(self):
+        self.tool = getattr(self.portal, CSSTOOLNAME)
+        self.tool.clearResources()
+
+    def testSetEnabled(self):
+        self.tool.registerStylesheet('ham')
+        self.tool.registerStylesheet('spam')
+        self.tool.registerStylesheet('eggs')
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[0].getId()],
+                         ['ham', 'spam', 'eggs'])
+        spam = self.tool.getResource('spam')
+        spam.setEnabled(False)
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[0].getId()],
+                         ['ham', 'spam', 'eggs'])
+        self.tool.cookResources()
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[0].getId()],
+                         ['ham', 'eggs'])
+
+    def testSetCookable(self):
+        self.tool.registerStylesheet('ham')
+        self.tool.registerStylesheet('spam')
+        self.tool.registerStylesheet('eggs')
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[0].getId()],
+                         ['ham', 'spam', 'eggs'])
+        spam = self.tool.getResource('spam')
+        spam.setCookable(False)
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[0].getId()],
+                         ['ham', 'spam', 'eggs'])
+        self.tool.cookResources()
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[0].getId()],
+                         ['ham'])
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[1].getId()],
+                         ['spam'])
+        self.assertEqual(self.tool.concatenatedresources[
+                         self.tool.cookedresources[2].getId()],
+                         ['eggs'])
+
+
 def test_suite():
     from unittest import TestSuite, makeSuite
     suite = TestSuite()
@@ -913,6 +960,7 @@ def test_suite():
     suite.addTest(makeSuite(TestMergingDisabled))
     suite.addTest(makeSuite(TestResourcePermissions))
     suite.addTest(makeSuite(TestDebugMode))
+    suite.addTest(makeSuite(TestResourceObjects))
 
     if not PLONE21:
         # We must not test for the defaults in Plone 2.1 because they are

@@ -5,11 +5,11 @@ from zExceptions import NotFound
 from Globals import InitializeClass, Persistent, PersistentMapping
 from AccessControl import ClassSecurityInfo, Unauthorized
 
+from Acquisition import aq_base, aq_parent, aq_inner
+
 from OFS.Image import File
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
-
-from Acquisition import aq_base, aq_parent, aq_inner
 
 from Products.CMFCore.Expression import Expression
 from Products.CMFCore.Expression import createExprContext
@@ -68,6 +68,7 @@ class Resource(Persistent):
 
 InitializeClass(Resource)
 
+
 class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     """Base class for a Plone registry managing resource files."""
 
@@ -95,7 +96,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
 
     def __getitem__(self, item):
         """Return a resource from the registry."""
-        output = self.getResource(item, self)
+        output = self.getResourceContent(item, self)
         if self.getDebugMode():
             duration = 0
         else:
@@ -186,7 +187,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     security.declarePrivate('cookResources')
     def cookResources(self):
         """Cook the stored resources."""
-        resources = [r for r in self.getResources() if r.getEnabled()]
+        resources = [r.copy() for r in self.getResources() if r.getEnabled()]
         self.concatenatedresources = {}
         self.cookedresources = ()
         results = []
@@ -246,15 +247,24 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
             return 1
 
     security.declarePrivate('getResource')
-    def getResource(self, item, context):
-        """Fetch resource for delivery."""
+    def getResource(self, id):
+        """Get resource object by id.
+        
+        If any property of the resource is changed, then cookResources of the
+        registry must be called."""
+        resources = self.getResourcesDict()
+        return resources.get(id, None)
+
+    security.declarePrivate('getResourceContent')
+    def getResourceContent(self, item, context):
+        """Fetch resource content for delivery."""
         ids = self.concatenatedresources.get(item, None)
+        resources = self.getResourcesDict()
         if ids is not None:
             ids = ids[:]
         output = ""
         if len(ids) > 1:
             output = output + self.merged_output_prefix
-        resources = self.getResourcesDict()
 
         portal = None
         u_tool = getToolByName(self, 'portal_url', None)
@@ -421,7 +431,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
                 obj = self.resource_class(item_id, **item)
                 result.append(obj)
             else:
-                result.append(item.copy())
+                result.append(item)
         return tuple(result)
 
     security.declareProtected(permissions.ManagePortal, 'getCookedResources')
@@ -437,7 +447,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
                 obj = self.resource_class(item_id, **item)
                 result.append(obj)
             else:
-                result.append(item.copy())
+                result.append(item)
         return tuple(result)
 
     security.declareProtected(permissions.ManagePortal, 'moveResource')
@@ -521,7 +531,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
         """
         headers = self.REQUEST.RESPONSE.headers.copy()
         # Save the RESPONSE headers
-        output = self.getResource(item, context)
+        output = self.getResourceContent(item, context)
         # File objects and other might manipulate the headers,
         # something we don't want. we set the saved headers back
         self.REQUEST.RESPONSE.headers = headers
