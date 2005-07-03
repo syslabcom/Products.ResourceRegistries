@@ -105,12 +105,11 @@ class JSRegistryTool(BaseRegistryTool):
         self.resources = ()
         scripts = []
         for r in records:
-            script = {}
-            script['id'] = r.get('id')
-            script['expression'] = r.get('expression', '')
-            script['inline'] = r.get('inline')
-            script['enabled'] = r.get('enabled')
-            script['cookable'] = r.get('cookable')
+            script = JavaScript(r.get('id'),
+                                expression=r.get('expression', ''),
+                                inline=r.get('inline'),
+                                enabled=r.get('enabled'),
+                                cookable=r.get('cookable'))
             scripts.append(script)
         self.resources = tuple(scripts)
         self.cookResources()

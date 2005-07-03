@@ -163,15 +163,14 @@ class CSSRegistryTool(BaseRegistryTool):
         self.resources = ()
         stylesheets = []
         for r in records:
-            stylesheet = {}
-            stylesheet['id'] = r.get('id')
-            stylesheet['expression'] = r.get('expression', '')
-            stylesheet['media'] = r.get('media', '')
-            stylesheet['rel'] = r.get('rel', 'stylesheet')
-            stylesheet['title'] = r.get('title', '')
-            stylesheet['rendering'] = r.get('rendering', 'import')
-            stylesheet['enabled'] = r.get('enabled', False)
-            stylesheet['cookable'] = r.get('cookable', False)
+            stylesheet = Stylesheet(r.get('id'),
+                                    expression=r.get('expression', ''),
+                                    media=r.get('media', ''),
+                                    rel=r.get('rel', 'stylesheet'),
+                                    title=r.get('title', ''),
+                                    rendering=r.get('rendering', 'import'),
+                                    enabled=r.get('enabled', False),
+                                    cookable=r.get('cookable', False))
             stylesheets.append(stylesheet)
         self.resources = tuple(stylesheets)
         self.cookResources()
