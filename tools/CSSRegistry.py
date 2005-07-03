@@ -98,7 +98,7 @@ class CSSRegistryTool(BaseRegistryTool):
     def storeResource(self, resource):
         """Store a resource."""
         self.validateId(resource.getId(), self.getResources())
-        resources = list(self.resources)
+        resources = list(self.getResources())
         if len(resources) and resources[-1].getId() == 'ploneCustom.css':
             # ploneCustom.css should be the last item
             resources.insert(-1, resource)

@@ -413,7 +413,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager):
     security.declareProtected(permissions.ManagePortal, 'getResourceIds')
     def getResourceIds(self):
         """Return the ids of all resources."""
-        return tuple([x.getId() for x in self.resources])
+        return tuple([x.getId() for x in self.getResources()])
 
     security.declareProtected(permissions.ManagePortal, 'getResources')
     def getResources(self):
