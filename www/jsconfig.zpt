@@ -198,6 +198,13 @@ legend {
             <input type="hidden" name="scripts.cacheable:records:boolean:default" value="False" />
         </div>
 
+        <div>
+            <label>Skin Selections Blacklist</label>
+            <input type="text" size="50"
+                   name="scripts.skinsblacklist:records:string"
+                   tal:attributes="value script/getSkinsBlacklist">
+        </div>
+
         <div class="visualClear">&nbsp;</div>
 
     </fieldset>
@@ -244,6 +251,11 @@ legend {
             <label>Caching allowed?</label>
             <input type="checkbox" name="cacheable:boolean" checked="1" />
             <input type="hidden" name="cacheable:boolean:default" value="False" />
+        </div>
+
+        <div>
+            <label>Skin Selections Blacklist</label>
+            <input type="text" name="skinsblacklist" size="50" />
         </div>
 
     </fieldset>

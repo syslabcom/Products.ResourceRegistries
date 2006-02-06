@@ -196,20 +196,27 @@ legend {
 
         <div class="stylesheetform">
             <label>CSS Media</label>
-            <input type="text" name="stylesheets.media:records"
+            <input type="text" name="stylesheets.media:records:string"
                    tal:attributes="value stylesheet/getMedia|nothing">
 
             <label>rel</label>
-            <input type="text" name="stylesheets.rel:records"
+            <input type="text" name="stylesheets.rel:records:string"
                    tal:attributes="value stylesheet/getRel|nothing">
 
             <label>Render type</label>
-            <select name="stylesheets.rendering:records">
+            <select name="stylesheets.rendering:records:string">
                 <option tal:repeat="r here/getRenderingOptions"
                         tal:attributes="value r;
                                         selected python:r == stylesheet.getRendering()"
                         tal:content="r">import</option>
             </select>
+        </div>
+
+        <div>
+            <label>Skin Selections Blacklist</label>
+            <input type="text" size="50"
+                   name="stylesheets.skinsblacklist:records:string"
+                   tal:attributes="value stylesheet/getSkinsBlacklist|nothing">
         </div>
 
         <div style="clear: both;">&nbsp;</div>
@@ -278,6 +285,11 @@ legend {
               <label>Caching allowed?</label>
               <input type="checkbox" name="cachable:boolean" checked="1" />
               <input type="hidden" name="cachable:boolean:default" value="False" />
+          </div>
+
+          <div>
+              <label>Skin Selections Blacklist</label>
+              <input type="text" name="skinsblacklist" size="50" />
           </div>
 
           <div>

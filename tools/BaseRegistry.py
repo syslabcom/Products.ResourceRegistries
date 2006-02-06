@@ -49,6 +49,7 @@ class Resource(Persistent):
         self._data['enabled'] = kwargs.get('enabled', True)
         self._data['cookable'] = kwargs.get('cookable', True)
         self._data['cacheable'] = kwargs.get('cacheable', True)
+        self._data['skinsblacklist'] = kwargs.get('skinsblacklist', '')
 
     def copy(self):
         result = self.__class__(self.getId())
@@ -98,6 +99,14 @@ class Resource(Persistent):
     def setCacheable(self, cacheable):
         self._data['cacheable'] = cacheable
 
+    security.declarePublic('getSkinsBlacklist')
+    def getSkinsBlacklist(self):
+        return self._data['skinsblacklist']
+
+    security.declareProtected(permissions.ManagePortal, 'setSkinsBlacklist')
+    def setSkinsBlacklist(self, skinsblacklist):
+        self._data['skinsblacklist'] = skinsblacklist
+
 InitializeClass(Resource)
 
 
@@ -144,7 +153,8 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     __implements__ = (SimpleItem.__implements__, IResourceRegistry)
     manage_options = SimpleItem.manage_options
 
-    attributes_to_compare = ('getExpression', 'getCookable', 'getCacheable')
+    attributes_to_compare = ('getExpression', 'getCookable',
+                             'getCacheable', 'getSkinsBlacklist')
     filename_base = 'ploneResources'
     filename_appendix = '.res'
     merged_output_prefix = ''
@@ -497,13 +507,14 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
 
     security.declareProtected(permissions.ManagePortal, 'registerResource')
     def registerResource(self, id, expression='', enabled=True,
-                         cookable=True, cacheable=True):
+                         cookable=True, cacheable=True, skinsblacklist=''):
         """Register a resource."""
         resource = Resource(id,
                             expression=expression,
                             enabled=enabled,
                             cookable=cookable,
-                            cacheable=cacheable)
+                            cacheable=cacheable,
+                            skinsblacklist=skinsblacklist)
         self.storeResource(resource)
 
     security.declareProtected(permissions.ManagePortal, 'unregisterResource')

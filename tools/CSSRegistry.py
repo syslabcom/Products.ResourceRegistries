@@ -94,8 +94,8 @@ class CSSRegistryTool(BaseRegistryTool):
         },
     ) + BaseRegistryTool.manage_options
 
-    attributes_to_compare = ('getExpression', 'getCookable',
-                             'getCacheable', 'getRel', 'getRendering')
+    attributes_to_compare = ('getExpression', 'getCookable', 'getCacheable',
+                             'getRel', 'getRendering', 'getSkinsBlacklist')
     filename_base = 'ploneStyles'
     filename_appendix = '.css'
     merged_output_prefix = ''
@@ -176,10 +176,11 @@ class CSSRegistryTool(BaseRegistryTool):
     security.declareProtected(permissions.ManagePortal, 'manage_addStylesheet')
     def manage_addStylesheet(self, id, expression='', media='',
                              rel='stylesheet', title='', rendering='import',
-                             enabled=False, cookable=True, REQUEST=None):
+                             enabled=False, cookable=True, skinsblacklist='',
+                             REQUEST=None):
         """Register a stylesheet from a TTW request."""
         self.registerStylesheet(id, expression, media, rel, title,
-                                rendering, enabled, cookable)
+                                rendering, enabled, cookable, skinsblacklist)
         if REQUEST:
             REQUEST.RESPONSE.redirect(REQUEST['HTTP_REFERER'])
 
@@ -204,7 +205,9 @@ class CSSRegistryTool(BaseRegistryTool):
                                     rendering=r.get('rendering', 'import'),
                                     enabled=r.get('enabled', False),
                                     cookable=r.get('cookable', False),
-                                    cacheable=r.get('cacheable', False))
+                                    cacheable=r.get('cacheable', False),
+                                    skinsblacklist=r.get('skinsblacklist', '')
+                                    )
             stylesheets.append(stylesheet)
         self.resources = tuple(stylesheets)
         self.cookResources()
@@ -223,8 +226,10 @@ class CSSRegistryTool(BaseRegistryTool):
     #
 
     security.declareProtected(permissions.ManagePortal, 'registerStylesheet')
-    def registerStylesheet(self, id, expression='', media='', rel='stylesheet',
-                           title='', rendering='import',  enabled=1, cookable=True):
+    def registerStylesheet(self, id, expression='', media='',
+                                 rel='stylesheet', title='',
+                                 rendering='import',  enabled=1,
+                                 cookable=True, skinsblacklist=''):
         """Register a stylesheet."""
         stylesheet = Stylesheet(id,
                                 expression=expression,
@@ -233,7 +238,8 @@ class CSSRegistryTool(BaseRegistryTool):
                                 title=title,
                                 rendering=rendering,
                                 enabled=enabled,
-                                cookable=cookable)
+                                cookable=cookable,
+                                skinsblacklist=skinsblacklist)
         self.storeResource(stylesheet)
 
     security.declareProtected(permissions.ManagePortal, 'getRenderingOptions')
