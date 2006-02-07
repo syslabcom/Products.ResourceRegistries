@@ -103,6 +103,12 @@ class Resource(Persistent):
     def getSkinsBlacklist(self):
         return self._data['skinsblacklist']
 
+    security.declarePublic('getSkinsBlacklistTuple')
+    def getSkinsBlacklistTuple(self):
+        return tuple(
+            [s.strip('"') for s in self.getSkinsBlacklist().split(',')]
+            )
+
     security.declareProtected(permissions.ManagePortal, 'setSkinsBlacklist')
     def setSkinsBlacklist(self, skinsblacklist):
         self._data['skinsblacklist'] = skinsblacklist
@@ -296,7 +302,12 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     security.declareProtected(permissions.ManagePortal, 'cookResources')
     def cookResources(self):
         """Cook the stored resources."""
-        resources = [r.copy() for r in self.getResources() if r.getEnabled()]
+        skinstool = getToolByName(self, 'portal_skins')
+        # XXX(davconvent): defaultskin is not current chosen skin!!
+        defaultskin = skinstool.getDefaultSkin()
+        resources = [r.copy() for r in self.getResources()
+                     if r.getEnabled()
+                     and not defaultskin in r.getSkinsBlacklistTuple()]
         self.concatenatedresources = {}
         self.cookedresources = ()
         if self.getDebugMode():
