@@ -85,11 +85,14 @@ class TestStylesheetRegistration(CSSRegistryTestCase.CSSRegistryTestCase):
         self.assertEqual(self.tool.getResources()[0].getTitle(), None)
         self.assertEqual(self.tool.getResources()[0].getRendering(), 'import')
         self.failUnless(self.tool.getResources()[0].getEnabled())
+        self.assertEqual(self.tool.getResources()[0].getSkinBlacklist(), '')
 
     def testStylesheetAttributes(self):
         self.tool.registerStylesheet('foo', expression='python:1',
-                                     media='print', rel='alternate stylesheet',
-                                     title='Foo', rendering='inline', enabled=0)
+                                     media='print',
+                                     rel='alternate stylesheet',
+                                     title='Foo', rendering='inline',
+                                     enabled=0, skinblacklist='Foo Skin')
         self.assertEqual(self.tool.getResources()[0].getId(), 'foo')
         self.assertEqual(self.tool.getResources()[0].getExpression(), 'python:1')
         self.assertEqual(self.tool.getResources()[0].getMedia(), 'print')
@@ -97,6 +100,7 @@ class TestStylesheetRegistration(CSSRegistryTestCase.CSSRegistryTestCase):
         self.assertEqual(self.tool.getResources()[0].getTitle(), 'Foo')
         self.assertEqual(self.tool.getResources()[0].getRendering(), 'inline')
         self.failIf(self.tool.getResources()[0].getEnabled())
+        self.assertEqual(self.tool.getResources()[0].getSkinBlacklist(), 'Foo Skin')
 
     def testDisallowingDuplicateIds(self):
         self.tool.registerStylesheet('foo')

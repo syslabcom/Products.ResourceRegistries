@@ -49,7 +49,7 @@ class Resource(Persistent):
         self._data['enabled'] = kwargs.get('enabled', True)
         self._data['cookable'] = kwargs.get('cookable', True)
         self._data['cacheable'] = kwargs.get('cacheable', True)
-        self._data['skinsblacklist'] = kwargs.get('skinsblacklist', '')
+        self._data['skinblacklist'] = kwargs.get('skinblacklist', '')
 
     def copy(self):
         result = self.__class__(self.getId())
@@ -99,17 +99,17 @@ class Resource(Persistent):
     def setCacheable(self, cacheable):
         self._data['cacheable'] = cacheable
 
-    security.declarePublic('getSkinsBlacklist')
-    def getSkinsBlacklist(self):
-        return self._data['skinsblacklist']
+    security.declarePublic('getSkinBlacklist')
+    def getSkinBlacklist(self):
+        return self._data['skinblacklist']
 
-    security.declarePublic('getSkinsBlacklistList')
-    def getSkinsBlacklistList(self):
-        return [i.strip() for i in self.getSkinsBlacklist().split(',')]
+    security.declarePublic('getSkinBlacklistList')
+    def getSkinBlacklistList(self):
+        return [i.strip() for i in self.getSkinBlacklist().split(',')]
 
-    security.declareProtected(permissions.ManagePortal, 'setSkinsBlacklist')
-    def setSkinsBlacklist(self, skinsblacklist):
-        self._data['skinsblacklist'] = skinsblacklist
+    security.declareProtected(permissions.ManagePortal, 'setSkinBlacklist')
+    def setSkinBlacklist(self, skinblacklist):
+        self._data['skinblacklist'] = skinblacklist
 
 InitializeClass(Resource)
 
@@ -158,7 +158,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     manage_options = SimpleItem.manage_options
 
     attributes_to_compare = ('getExpression', 'getCookable',
-                             'getCacheable', 'getSkinsBlacklist')
+                             'getCacheable', 'getSkinBlacklist')
     filename_base = 'ploneResources'
     filename_appendix = '.res'
     merged_output_prefix = ''
@@ -511,14 +511,14 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
 
     security.declareProtected(permissions.ManagePortal, 'registerResource')
     def registerResource(self, id, expression='', enabled=True,
-                         cookable=True, cacheable=True, skinsblacklist=''):
+                         cookable=True, cacheable=True, skinblacklist=''):
         """Register a resource."""
         resource = Resource(id,
                             expression=expression,
                             enabled=enabled,
                             cookable=cookable,
                             cacheable=cacheable,
-                            skinsblacklist=skinsblacklist)
+                            skinblacklist=skinblacklist)
         self.storeResource(resource)
 
     security.declareProtected(permissions.ManagePortal, 'unregisterResource')
@@ -621,13 +621,15 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         results = self.getCookedResources()
         skinstool = getToolByName(context, 'portal_skins')
         skinvariable = skinstool.getRequestVarname()
-        skin = context.REQUEST.get(skinvariable)
-        if not skin:
-            skin = skinstool.getDefaultSkin()
-        # filter results by expression and by currently selected skin
+        currentskin = context.REQUEST.get(skinvariable)
+        if not currentskin:
+            currentskin = context.REQUEST.get('portal_skin')
+        if not currentskin:
+            currentskin = skinstool.getDefaultSkin()
+        # filter results by expression and currently selected skin
         results = [item for item in results
                    if self.evaluateExpression(item.getExpression(), context)
-                   and not skin in item.getSkinsBlacklistList()]
+                   and not currentskin in item.getSkinBlacklistList()]
 
         # filter out resources to which the user does not have access
         # this is mainly cosmetic but saves raising lots of Unauthorized

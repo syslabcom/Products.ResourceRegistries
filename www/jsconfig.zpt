@@ -199,10 +199,10 @@ legend {
         </div>
 
         <div>
-            <label>Skin Selections Blacklist</label>
+            <label>Disable for skins</label>
             <input type="text" size="50"
                    name="scripts.skinsblacklist:records:string"
-                   tal:attributes="value script/getSkinsBlacklist">
+                   tal:attributes="value script/getSkinBlacklist">
         </div>
 
         <div class="visualClear">&nbsp;</div>
@@ -254,7 +254,7 @@ legend {
         </div>
 
         <div>
-            <label>Skin Selections Blacklist</label>
+            <label>Disable for skins</label>
             <input type="text" name="skinsblacklist" size="50" />
         </div>
 

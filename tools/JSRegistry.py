@@ -60,7 +60,8 @@ class JSRegistryTool(BaseRegistryTool):
     ) + BaseRegistryTool.manage_options
 
     attributes_to_compare = ('getExpression', 'getCookable',
-                             'getCacheable', 'getInline', 'getSkinsBlacklist')
+                             'getCacheable', 'getInline',
+                             'getSkinBlacklistList')
     filename_base = 'ploneScripts'
     filename_appendix = '.js'
     cache_duration = config.JS_CACHE_DURATION
@@ -89,7 +90,7 @@ class JSRegistryTool(BaseRegistryTool):
 
     security.declareProtected(permissions.ManagePortal, 'manage_addScript')
     def manage_addScript(self, id, expression='', inline=False,
-                         enabled=False, cookable=True, skinsblacklist='',
+                         enabled=False, cookable=True, skinblacklist='',
                          REQUEST=None):
         """Register a script from a TTW request."""
         self.registerScript(id, expression, inline, enabled, cookable)
@@ -115,7 +116,7 @@ class JSRegistryTool(BaseRegistryTool):
                                 enabled=r.get('enabled'),
                                 cookable=r.get('cookable'),
                                 cacheable=r.get('cacheable'),
-                                skinsblacklist=r.get('skinsblacklist', ''))
+                                skinblacklist=r.get('skinblacklist', ''))
             scripts.append(script)
         self.resources = tuple(scripts)
         self.cookResources()
@@ -135,14 +136,14 @@ class JSRegistryTool(BaseRegistryTool):
 
     security.declareProtected(permissions.ManagePortal, 'registerScript')
     def registerScript(self, id, expression='', inline=False, enabled=True,
-                             cookable=True, skinsblacklist=''):
+                             cookable=True, skinblacklist=''):
         """Register a script."""
         script = JavaScript(id,
                             expression=expression,
                             inline=inline,
                             enabled=enabled,
                             cookable=cookable,
-                            skinsblacklist=skinsblacklist)
+                            skinblacklist=skinblacklist)
         self.storeResource(script)
 
     security.declareProtected(permissions.View, 'getContentType')

@@ -213,10 +213,10 @@ legend {
         </div>
 
         <div>
-            <label>Skin Selections Blacklist</label>
+            <label>Disable for skins</label>
             <input type="text" size="50"
                    name="stylesheets.skinsblacklist:records:string"
-                   tal:attributes="value stylesheet/getSkinsBlacklist|nothing">
+                   tal:attributes="value stylesheet/getSkinBlacklist|nothing">
         </div>
 
         <div style="clear: both;">&nbsp;</div>
@@ -288,7 +288,7 @@ legend {
           </div>
 
           <div>
-              <label>Skin Selections Blacklist</label>
+              <label>Disable for skins</label>
               <input type="text" name="skinsblacklist" size="50" />
           </div>
 
