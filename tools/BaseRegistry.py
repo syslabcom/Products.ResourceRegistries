@@ -103,11 +103,9 @@ class Resource(Persistent):
     def getSkinsBlacklist(self):
         return self._data['skinsblacklist']
 
-    security.declarePublic('getSkinsBlacklistTuple')
-    def getSkinsBlacklistTuple(self):
-        return tuple(
-            [s.strip('"') for s in self.getSkinsBlacklist().split(',')]
-            )
+    security.declarePublic('getSkinsBlacklistList')
+    def getSkinsBlacklistList(self):
+        return [i.strip() for i in self.getSkinsBlacklist().split(',')]
 
     security.declareProtected(permissions.ManagePortal, 'setSkinsBlacklist')
     def setSkinsBlacklist(self, skinsblacklist):
@@ -302,12 +300,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     security.declareProtected(permissions.ManagePortal, 'cookResources')
     def cookResources(self):
         """Cook the stored resources."""
-        skinstool = getToolByName(self, 'portal_skins')
-        # XXX(davconvent): defaultskin is not current chosen skin!!
-        defaultskin = skinstool.getDefaultSkin()
-        resources = [r.copy() for r in self.getResources()
-                     if r.getEnabled()
-                     and not defaultskin in r.getSkinsBlacklistTuple()]
+        resources = [r.copy() for r in self.getResources() if r.getEnabled()]
         self.concatenatedresources = {}
         self.cookedresources = ()
         if self.getDebugMode():
@@ -627,9 +620,11 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         """Return the filtered evaluated resources."""
         results = self.getCookedResources()
 
-        # filter results by expression
+        defaultskins = getToolByName(context, 'portal_skins').getDefaultSkin()
+        # filter results by expression and by currently selected skin
         results = [item for item in results
-                   if self.evaluateExpression(item.getExpression(), context)]
+                   if self.evaluateExpression(item.getExpression(), context)
+                   and not defaultskins in item.getSkinsBlacklistList()]
 
         # filter out resources to which the user does not have access
         # this is mainly cosmetic but saves raising lots of Unauthorized
