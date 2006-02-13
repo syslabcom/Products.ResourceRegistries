@@ -619,12 +619,15 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     def getEvaluatedResources(self, context):
         """Return the filtered evaluated resources."""
         results = self.getCookedResources()
-
-        defaultskins = getToolByName(context, 'portal_skins').getDefaultSkin()
+        skinstool = getToolByName(context, 'portal_skins')
+        skinvariable = skinstool.getRequestVarname()
+        skin = context.REQUEST.get(skinvariable)
+        if not skin:
+            skin = skinstool.getDefaultSkin()
         # filter results by expression and by currently selected skin
         results = [item for item in results
                    if self.evaluateExpression(item.getExpression(), context)
-                   and not defaultskins in item.getSkinsBlacklistList()]
+                   and not skin in item.getSkinsBlacklistList()]
 
         # filter out resources to which the user does not have access
         # this is mainly cosmetic but saves raising lots of Unauthorized
