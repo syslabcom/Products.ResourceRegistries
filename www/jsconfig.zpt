@@ -205,7 +205,7 @@ legend {
                    tal:attributes="value script/getSkinBlacklist">
         </div>
 
-        <div class="visualClear">&nbsp;</div>
+        <div style="clear: both;">&nbsp;</div>
 
     </fieldset>
 
@@ -258,9 +258,11 @@ legend {
             <input type="text" name="skinsblacklist" size="50" />
         </div>
 
-    </fieldset>
+          <div style="clear: both;">&nbsp;</div>
+          <input type="submit" i18n:attributes="value" value="Add" />
+          <div style="clear: both;">&nbsp;</div>
 
-    <input type="submit" i18n:attributes="value" value="Add" />
+    </fieldset>
 
 </form>
 
