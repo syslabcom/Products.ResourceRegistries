@@ -95,7 +95,7 @@ class CSSRegistryTool(BaseRegistryTool):
     ) + BaseRegistryTool.manage_options
 
     attributes_to_compare = ('getExpression', 'getCookable', 'getCacheable',
-                             'getRel', 'getRendering', 'getSkinBlacklistList')
+                             'getRel', 'getRendering', 'getPerSkinExpressions')
     filename_base = 'ploneStyles'
     filename_appendix = '.css'
     merged_output_prefix = ''
@@ -176,11 +176,15 @@ class CSSRegistryTool(BaseRegistryTool):
     security.declareProtected(permissions.ManagePortal, 'manage_addStylesheet')
     def manage_addStylesheet(self, id, expression='', media='',
                              rel='stylesheet', title='', rendering='import',
-                             enabled=False, cookable=True, skinblacklist='',
+                             enabled=False, cookable=True,
+                             perskinexpressions={},
                              REQUEST=None):
         """Register a stylesheet from a TTW request."""
+        if REQUEST and not perskinexpressions:
+            perskinexpressions = REQUEST.get('tal_expression_for_new_css', {})
         self.registerStylesheet(id, expression, media, rel, title,
-                                rendering, enabled, cookable, skinblacklist)
+                                rendering, enabled, cookable,
+                                perskinexpressions)
         if REQUEST:
             REQUEST.RESPONSE.redirect(REQUEST['HTTP_REFERER'])
 
@@ -206,8 +210,10 @@ class CSSRegistryTool(BaseRegistryTool):
                                     enabled=r.get('enabled', False),
                                     cookable=r.get('cookable', False),
                                     cacheable=r.get('cacheable', False),
-                                    skinblacklist=r.get('skinblacklist', '')
                                     )
+            skinexpressionsvariable = 'tal_expression_for_css_' + r.get('id')
+            perskinexpressions = REQUEST.get(skinexpressionsvariable, {})
+            stylesheet.setPerSkinExpressions(perskinexpressions)
             stylesheets.append(stylesheet)
         self.resources = tuple(stylesheets)
         self.cookResources()
@@ -229,7 +235,7 @@ class CSSRegistryTool(BaseRegistryTool):
     def registerStylesheet(self, id, expression='', media='',
                                  rel='stylesheet', title='',
                                  rendering='import',  enabled=1,
-                                 cookable=True, skinblacklist=''):
+                                 cookable=True, perskinexpressions={}):
         """Register a stylesheet."""
         stylesheet = Stylesheet(id,
                                 expression=expression,
@@ -239,7 +245,7 @@ class CSSRegistryTool(BaseRegistryTool):
                                 rendering=rendering,
                                 enabled=enabled,
                                 cookable=cookable,
-                                skinblacklist=skinblacklist)
+                                perskinexpressions=perskinexpressions)
         self.storeResource(stylesheet)
 
     security.declareProtected(permissions.ManagePortal, 'getRenderingOptions')

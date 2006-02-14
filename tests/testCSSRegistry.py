@@ -92,7 +92,7 @@ class TestStylesheetRegistration(CSSRegistryTestCase.CSSRegistryTestCase):
                                      media='print',
                                      rel='alternate stylesheet',
                                      title='Foo', rendering='inline',
-                                     enabled=0, skinblacklist='Foo Skin')
+                                     enabled=0, perskinexpressions='Foo Skin')
         self.assertEqual(self.tool.getResources()[0].getId(), 'foo')
         self.assertEqual(self.tool.getResources()[0].getExpression(), 'python:1')
         self.assertEqual(self.tool.getResources()[0].getMedia(), 'print')

@@ -82,7 +82,7 @@ function shiftBlocks(fieldset, block) {
 </script>
 
 <style type="text/css">
-div.stylesheetform{
+div.stylesheetform {
     width: 45%;
     float: left;
 }
@@ -114,7 +114,7 @@ fieldset {
     margin: 0.2em;
     border: 1px solid black;
     margin-bottom: 0.5em;
-    padding-bottom: 0;
+    padding-bottom: 0.5em;
     clear: both;
 }
 
@@ -122,6 +122,22 @@ legend {
     font-size: 90%;
 }
 
+fieldset fieldset {
+    border: none;
+}
+
+fieldset fieldset legend {
+    margin-top: 0.5em;
+    font-weight: bold;
+}
+
+fieldset fieldset label {
+    font-weight: normal;
+}
+
+fieldset fieldset label.add_styleshet {
+    text-align: left;
+}
 </style>
 
 <div tal:replace="structure here/manage_tabs" />
@@ -212,15 +228,19 @@ legend {
             </select>
         </div>
 
-        <div>
-            <label>Disable for skins</label>
-            <input type="text" size="50"
-                   name="stylesheets.skinsblacklist:records:string"
-                   tal:attributes="value stylesheet/getSkinBlacklist|nothing">
-        </div>
-
         <div style="clear: both;">&nbsp;</div>
 
+        <div>
+            <fieldset><legend>Per skin TAL conditions</legend>
+                <div tal:repeat="skin_name here/portal_skins/getSkinSelections">
+                    <label tal:content="skin_name" />
+                    <input type="text" size="50" name="#"
+                        tal:attributes="name string:tal_expression_for_css_${stylesheet/getId}.${skin_name}:record:string;
+                                        value python:stylesheet.getExpressionForSkin(skin_name);">
+                </div>
+                <div style="clear: both;">&nbsp;</div>
+            </fieldset>
+        </div>
 
     </fieldset>
 
@@ -287,14 +307,21 @@ legend {
               <input type="hidden" name="cachable:boolean:default" value="False" />
           </div>
 
-          <div>
-              <label>Disable for skins</label>
-              <input type="text" name="skinsblacklist" size="50" />
-          </div>
+        <div>
+            <fieldset><legend>Per skin TAL conditions</legend>
+                <div tal:repeat="skin_name here/portal_skins/getSkinSelections">
+                    <label class="add_styleshet"
+                           tal:content="skin_name" />
+                    <input type="text" size="50" name="#"
+                        tal:attributes="name string:tal_expression_for_new_css.${skin_name}:record:string;">
+                </div>
+                <div style="clear: both;">&nbsp;</div>
+            </fieldset>
+        </div>
 
           <div style="clear: both;">&nbsp;</div>
+
           <input type="submit" i18n:attributes="value" value="Add" />
-          <div style="clear: both;">&nbsp;</div>
 
     </fieldset>
 

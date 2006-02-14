@@ -1,7 +1,7 @@
 1.2b
 ===
 
- * Added skinblacklist resource property (string:coma separated list) for
+ * Added perskinexpressions resource property (string:coma separated list) for
    disabling resources for specific skins.
    [davconvent]
 

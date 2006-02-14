@@ -49,7 +49,8 @@ class Resource(Persistent):
         self._data['enabled'] = kwargs.get('enabled', True)
         self._data['cookable'] = kwargs.get('cookable', True)
         self._data['cacheable'] = kwargs.get('cacheable', True)
-        self._data['skinblacklist'] = kwargs.get('skinblacklist', '')
+        self._data['perskinexpressions'] = kwargs.get('perskinexpressions',
+                                                      {})
 
     def copy(self):
         result = self.__class__(self.getId())
@@ -99,17 +100,17 @@ class Resource(Persistent):
     def setCacheable(self, cacheable):
         self._data['cacheable'] = cacheable
 
-    security.declarePublic('getSkinBlacklist')
-    def getSkinBlacklist(self):
-        return self._data['skinblacklist']
+    security.declarePublic('getPerSkinExpressions')
+    def getPerSkinExpressions(self):
+        return self._data['perskinexpressions']
 
-    security.declarePublic('getSkinBlacklistList')
-    def getSkinBlacklistList(self):
-        return [i.strip() for i in self.getSkinBlacklist().split(',')]
+    security.declarePublic('getExpressionForSkin')
+    def getExpressionForSkin(self, skin_name):
+        return self._data['perskinexpressions'].get(skin_name, '')
 
-    security.declareProtected(permissions.ManagePortal, 'setSkinBlacklist')
-    def setSkinBlacklist(self, skinblacklist):
-        self._data['skinblacklist'] = skinblacklist
+    security.declareProtected(permissions.ManagePortal, 'setPerSkinExpressions')
+    def setPerSkinExpressions(self, perskinexpressions):
+        self._data['perskinexpressions'] = perskinexpressions
 
 InitializeClass(Resource)
 
@@ -511,14 +512,14 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
 
     security.declareProtected(permissions.ManagePortal, 'registerResource')
     def registerResource(self, id, expression='', enabled=True,
-                         cookable=True, cacheable=True, skinblacklist=''):
+                         cookable=True, cacheable=True, perskinexpressions={}):
         """Register a resource."""
         resource = Resource(id,
                             expression=expression,
                             enabled=enabled,
                             cookable=cookable,
                             cacheable=cacheable,
-                            skinblacklist=skinblacklist)
+                            perskinexpressions=perskinexpressions)
         self.storeResource(resource)
 
     security.declareProtected(permissions.ManagePortal, 'unregisterResource')
@@ -628,8 +629,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
             currentskin = skinstool.getDefaultSkin()
         # filter results by expression and currently selected skin
         results = [item for item in results
-                   if self.evaluateExpression(item.getExpression(), context)
-                   and not currentskin in item.getSkinBlacklistList()]
+                   if self.evaluateExpression(item.getExpression(), context)]
 
         # filter out resources to which the user does not have access
         # this is mainly cosmetic but saves raising lots of Unauthorized

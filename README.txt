@@ -55,7 +55,7 @@ Usage
         sparingly. Costs bandwidth, but is very useful for style that vary for
         example on a per-folder-basis, like those famous header graphics bars.
 
-  skinblacklist -- List of the skins for which the resource will be disabled.
+  perskinexpressions -- List of the skins for which the resource will be disabled.
   Value is a string, skin names are entered as a coma separated list.
 
   If several stylesheets listed directly after each other in the registry have
