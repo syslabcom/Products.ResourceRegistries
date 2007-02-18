@@ -152,7 +152,7 @@ class JSRegistryTool(BaseRegistryTool):
         Updates the whole sequence. For editing and reordering.
         """
         debugmode = REQUEST.get('debugmode',False)
-        self.setDebugMode(debugmode)
+        self.setDebugMode(debugmode,doCook=False)
         records = REQUEST.form.get('scripts')
         records.sort(lambda a, b: a.sort-b.sort)
         self.resources = ()
@@ -184,7 +184,7 @@ class JSRegistryTool(BaseRegistryTool):
 
     security.declareProtected(permissions.ManagePortal, 'registerScript')
     def registerScript(self, id, expression='', inline=False, enabled=True,
-                       cookable=True, compression='safe', cacheable=True):
+                       cookable=True, compression='safe', cacheable=True, doCook=True):
         """Register a script."""
         script = JavaScript(id,
                             expression=expression,
@@ -193,10 +193,10 @@ class JSRegistryTool(BaseRegistryTool):
                             cookable=cookable,
                             compression=compression,
                             cacheable=cacheable)
-        self.storeResource(script)
+        self.storeResource(script,doCook)
 
     security.declareProtected(permissions.ManagePortal, 'updateScript')
-    def updateScript(self, id, **data):
+    def updateScript(self, id, doCook=True, **data):
         script = self.getResourcesDict().get(id, None)
         if script is None:
             raise ValueError, 'Invalid resource id %s' % (id)
