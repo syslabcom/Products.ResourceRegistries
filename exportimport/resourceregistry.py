@@ -147,7 +147,7 @@ class ResourceRegistryNodeAdapter(XMLAdapterBase):
                 method(res_id)
             elif method == reg_method:
                 try:
-                    method(res_id, **data)
+                    method(res_id, doCook=False, **data)
                 except ValueError, e:
                     # this feels a bit dirty too, but we always want to update
                     # if the resource already exists (in which case 'ValueError:
@@ -158,3 +158,4 @@ class ResourceRegistryNodeAdapter(XMLAdapterBase):
             if position is not None:
                 moveMethod = getattr(registry, 'moveResource' + position[0])
                 moveMethod(res_id, *position[1:])
+        registry.cookResources() # finally cook it and create the cache
