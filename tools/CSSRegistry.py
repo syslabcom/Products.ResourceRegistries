@@ -130,7 +130,7 @@ class CSSRegistryTool(BaseRegistryTool):
     #
 
     security.declarePrivate('storeResource')
-    def storeResource(self, resource):
+    def storeResource(self, resource, doCook=True):
         """Store a resource."""
         self.validateId(resource.getId(), self.getResources())
         resources = list(self.getResources())
@@ -140,7 +140,8 @@ class CSSRegistryTool(BaseRegistryTool):
         else:
             resources.append(resource)
         self.resources = tuple(resources)
-        self.cookResources()
+        if doCook:
+            self.cookResources()
 
     security.declarePrivate('clearStylesheets')
     def clearStylesheets(self):
@@ -208,7 +209,7 @@ class CSSRegistryTool(BaseRegistryTool):
         Updates the whole sequence. For editing and reordering.
         """
         debugmode = REQUEST.get('debugmode',False)
-        self.setDebugMode(debugmode)
+        self.setDebugMode(debugmode,doCook=False)
         records = REQUEST.get('stylesheets')
         records.sort(lambda a, b: a.sort - b.sort)
         self.resources = ()
@@ -244,7 +245,7 @@ class CSSRegistryTool(BaseRegistryTool):
     security.declareProtected(permissions.ManagePortal, 'registerStylesheet')
     def registerStylesheet(self, id, expression='', media='', rel='stylesheet',
                            title='', rendering='import',  enabled=1,
-                           cookable=True, compression='safe', cacheable=True):
+                           cookable=True, compression='safe', cacheable=True, doCook=True):
         """Register a stylesheet."""
         stylesheet = Stylesheet(id,
                                 expression=expression,
@@ -256,10 +257,10 @@ class CSSRegistryTool(BaseRegistryTool):
                                 cookable=cookable,
                                 compression=compression,
                                 cacheable=cacheable)
-        self.storeResource(stylesheet)
+        self.storeResource(stylesheet,doCook)
 
     security.declareProtected(permissions.ManagePortal, 'updateStylesheet')
-    def updateStylesheet(self, id, **data):
+    def updateStylesheet(self, id, doCook=True, **data):
         stylesheet = self.getResourcesDict().get(id, None)
         if stylesheet is None:
             raise ValueError, 'Invalid resource id %s' % (id)
