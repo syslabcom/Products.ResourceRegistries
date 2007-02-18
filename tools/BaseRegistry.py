@@ -322,6 +322,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         self.resources = ()
         self.cookedresources = ()
         self.concatenatedresources = {}
+        self._cached_resources = {}
 
     security.declarePrivate('getResourcesDict')
     def getResourcesDict(self):
@@ -375,6 +376,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     security.declareProtected(permissions.ManagePortal, 'cookResources')
     def cookResources(self):
         """Cook the stored resources."""
+        self._cached_output={}
         resources = [r.copy() for r in self.getResources() if r.getEnabled()]
         self.concatenatedresources = {}
         self.cookedresources = ()
@@ -413,6 +415,21 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         for resource in resources:
             self.concatenatedresources[resource.getId()] = [resource.getId()]
         self.cookedresources = tuple(results)
+        self.createResourceCache()
+        
+        
+    security.declarePrivate('createResourceCache')
+    def createResourceCache(self):
+        """create the resource cache"""
+        # collect all enabled resources
+        cookedResourceIds = [r.getId() for r in self.cookedresources]
+        enabled_ids = [r.getId() for r in self.getResources() if r.getEnabled()]+cookedResourceIds
+        
+        self._cached_resources={}
+        for item in enabled_ids:
+            self._cached_resources[item]=self.compileResource(item,self)
+        self._p_changed=1
+                
 
     security.declarePrivate('evaluateExpression')
     def evaluateExpression(self, expression, context):
@@ -456,10 +473,29 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         if resource is not None:
             return ExplicitAcquisitionWrapper(resource, self)
         return None
+        
 
     security.declarePrivate('getResourceContent')
     def getResourceContent(self, item, context, original=False):
+        """Fetch resource content for delivery and chech cache before."""
+        # XXX: This needs to be better implemented of course and is thus commented out
+        #if_modif = self.REQUEST.get_header('If-Modified-Since', None)
+        #if if_modif is not None:
+                #self.REQUEST.RESPONSE.setStatus(304)
+                #return ""
+        if not hasattr(aq_base(self),"_cached_resources"):
+            return self.compileResource(item,context,original)
+        else:
+            if self._cached_resources.has_key(item):
+                return self._cached_resources[item]
+            else:
+                return self.compileResource(item,context,original)
+
+    security.declarePrivate('compileResource')
+    def compileResource(self, item, context, original=False):
         """Fetch resource content for delivery."""
+
+                
         ids = self.concatenatedresources.get(item, None)
         resources = self.getResourcesDict()
         if ids is not None:
@@ -734,10 +770,11 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         return self.debugmode
 
     security.declareProtected(permissions.ManagePortal, 'setDebugMode')
-    def setDebugMode(self, value):
+    def setDebugMode(self, value, doCook=True):
         """Set whether resource merging should be disabled."""
         self.debugmode = value
-        self.cookResources()
+        if doCook:
+            self.cookResources()
 
     security.declareProtected(permissions.View, 'getEvaluatedResources')
     def getEvaluatedResources(self, context):
