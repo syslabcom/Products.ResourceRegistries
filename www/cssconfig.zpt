@@ -157,6 +157,9 @@ legend {
         <label for="debugmode" id="debugmodelabel">Debug/development mode</label>
         In debug-/development mode, stylesheets are not merged to composites, and caching and compression of css is disabled. The registry also sends http-headers to prevent browsers from caching the stylesheets. <br />Recommended during css-related development. Remember to  turn it off again, as the debugmode affects performance. 
     </p>
+    <p>
+       Please note that saving might take a long time as all the stylesheets are cooked and merged.
+    </p>
 
     <input type="submit" i18n:attributes="value" value="Save" style="float: none;" />
 
@@ -255,6 +258,11 @@ legend {
     </tal:stylesheets>
 
     <input type="submit" i18n:attributes="value" value="Save" />
+    
+    <p>
+       Please note that saving might take a long time as all the stylesheets are cooked and merged.
+    </p>
+    
 
 </form>
 
