@@ -305,13 +305,14 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                 raise ValueError, 'Duplicate id %s' %(id)
 
     security.declarePrivate('storeResource')
-    def storeResource(self, resource):
+    def storeResource(self, resource, doCook=True):
         """Store a resource."""
         self.validateId(resource.getId(), self.getResources())
         resources = list(self.resources)
         resources.append(resource)
         self.resources = tuple(resources)
-        self.cookResources()
+        if doCook:
+            self.cookResources()
 
     security.declarePrivate('clearResources')
     def clearResources(self):
@@ -428,8 +429,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         self._cached_resources={}
         for item in enabled_ids:
             self._cached_resources[item]=self.compileResource(item,self)
-        self._p_changed=1
-                
+        self._p_changed=1                
 
     security.declarePrivate('evaluateExpression')
     def evaluateExpression(self, expression, context):
@@ -684,12 +684,13 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         self.storeResource(resource)
 
     security.declareProtected(permissions.ManagePortal, 'unregisterResource')
-    def unregisterResource(self, id):
+    def unregisterResource(self, id, doCook=True):
         """Unregister a registered resource."""
         resources = [item for item in self.getResources()
                      if item.getId() != id]
         self.resources = tuple(resources)
-        self.cookResources()
+        if doCook:
+            self.cookResources()
 
     security.declareProtected(permissions.ManagePortal, 'renameResource')
     def renameResource(self, old_id, new_id):
