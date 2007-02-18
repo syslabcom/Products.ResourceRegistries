@@ -483,6 +483,8 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         #if if_modif is not None:
                 #self.REQUEST.RESPONSE.setStatus(304)
                 #return ""
+        if self.getDebugMode():
+            return self.compileResource(item,context,original)
         if not hasattr(aq_base(self),"_cached_resources"):
             return self.compileResource(item,context,original)
         else:
