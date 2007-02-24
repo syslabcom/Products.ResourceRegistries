@@ -260,7 +260,6 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         if name in skins:
             return Skin(name).__of__(self)
 
-        
         if REQUEST is not None and \
            self.concatenatedresources.get(name, None) is not None:
             # __bobo_traverse__ is called before the authentication has
@@ -416,7 +415,8 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         for resource in resources:
             self.concatenatedresources[resource.getId()] = [resource.getId()]
         self.cookedresources = tuple(results)
-        self.createResourceCache()
+        if not self.getDebugMode():
+            self.createResourceCache()
         
         
     security.declarePrivate('createResourceCache')
@@ -495,9 +495,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
 
     security.declarePrivate('compileResource')
     def compileResource(self, item, context, original=False):
-        """Fetch resource content for delivery."""
-
-                
+        """Fetch resource content for delivery."""                   
         ids = self.concatenatedresources.get(item, None)
         resources = self.getResourcesDict()
         if ids is not None:
