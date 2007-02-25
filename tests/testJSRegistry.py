@@ -631,10 +631,13 @@ class TestResourcePermissions(FunctionalRegistryTestCase):
                                    file="window.alert('red')")
 
         script = self.portal.restrictedTraverse('testroot.js')
-
+        
         script.manage_permission('View',['Manager'], acquire=0)
         script.manage_permission('Access contents information',['Manager'], acquire=0)
+        
         self.setRoles(['Member'])
+        self.tool.cookResources()
+        
 
     def testUnauthorizedGetItem(self):
         try:
