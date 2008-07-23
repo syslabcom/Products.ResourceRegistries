@@ -23,15 +23,19 @@ class StylesView(BrowserView):
         result = []
         for style in styles:
             rendering = style.getRendering()
-            if rendering == 'link':
+            if style.isExternalResource():
+                src = "%s" % style.getId()
+            else:
                 src = "%s/%s/%s" % (registry_url, skinname, style.getId())
+            if rendering == 'link':
+                #src = "%s/%s/%s" % (registry_url, skinname, style.getId())
                 data = {'rendering': rendering,
                         'media': style.getMedia(),
                         'rel': style.getRel(),
                         'title': style.getTitle(),
                         'src': src}
             elif rendering == 'import':
-                src = "%s/%s/%s" % (registry_url, skinname, style.getId())
+                #src = "%s/%s/%s" % (registry_url, skinname, style.getId())
                 data = {'rendering': rendering,
                         'media': style.getMedia(),
                         'src': src}

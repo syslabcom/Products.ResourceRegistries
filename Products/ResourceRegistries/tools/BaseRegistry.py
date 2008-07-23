@@ -71,13 +71,18 @@ class Resource(Persistent):
 
     def __init__(self, id, **kwargs):
         self._data = PersistentMapping()
-        if id.startswith('/') or id.endswith('/') or '//' in id:
-            raise ValueError, "Invalid Resource ID: %s" %id
+        extres = id.startswith('http://') or id.startswith('https://')
+        if id.startswith('/') or id.endswith('/') or ('//' in id and not extres):
+            raise ValueError, "Invalid Resource ID: %s" % id
         self._data['id'] = id
         self._data['expression'] = kwargs.get('expression', '')
         self._data['enabled'] = kwargs.get('enabled', True)
         self._data['cookable'] = kwargs.get('cookable', True)
         self._data['cacheable'] = kwargs.get('cacheable', True)
+        self._data['external'] = extres
+        if extres:
+            self._data['cacheable'] = False #External resources are NOT cacheable
+            self._data['cookable'] = False #External resources are NOT mergable
 
     def copy(self):
         result = self.__class__(self.getId())
@@ -90,10 +95,15 @@ class Resource(Persistent):
     def getId(self):
         return self._data['id']
 
+    security.declarePublic('getQuotedId')
     def getQuotedId(self):
         return quote_plus(self._data['id'])
 
+    security.declareProtected(permissions.ManagePortal, '_setId')
     def _setId(self, id):
+        if id.startswith('/') or id.endswith('/') or (
+                ('//' in id) and not self.isExternalResource()):
+            raise ValueError, "Invalid Resource ID: %s" %id
         self._data['id'] = id
 
     security.declarePublic('getExpression')
@@ -128,7 +138,13 @@ class Resource(Persistent):
 
     security.declareProtected(permissions.ManagePortal, 'setCacheable')
     def setCacheable(self, cacheable):
+        if self.isExternalResource() and cacheable:
+            raise ValueError, "External Resources are not cacheable"
         self._data['cacheable'] = cacheable
+    
+    security.declarePublic('isExternalResource')
+    def isExternalResource(self):
+        return self._data.get('external',False)
 
 InitializeClass(Resource)
 
