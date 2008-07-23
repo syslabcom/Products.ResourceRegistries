@@ -128,6 +128,8 @@ class Resource(Persistent):
 
     security.declareProtected(permissions.ManagePortal, 'setCookable')
     def setCookable(self, cookable):
+        if self.isExternalResource() and cookable:
+            raise ValueError, "External Resources cannot be merged"
         self._data['cookable'] = cookable
 
     security.declarePublic('getCacheable')
