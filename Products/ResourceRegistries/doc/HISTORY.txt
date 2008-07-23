@@ -1,6 +1,12 @@
 1.4.3 (SVN/unreleased)
 ======================
 
+  * Added option to have a conditional comment attached to a given resource.
+    Currently the UI only supports this behavior with the CSS Registry, but the
+    underpinnings for the other two registries is in place. This closes
+    http://dev.plone.org/plone/ticket/5521
+    [dunlapm]
+
   * Fixed error where non-traversable resources could be registered. This closes
     http://dev.plone.org/plone/ticket/8153
     [dunlapm]
