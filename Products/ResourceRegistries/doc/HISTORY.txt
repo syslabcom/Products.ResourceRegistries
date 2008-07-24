@@ -1,6 +1,12 @@
 1.4.3 (SVN/unreleased)
 ======================
 
+  * Resources beginning with "http://" or "https://" are now valid and may be
+    included as resources. Registries will automatically disable merging,
+    caching, compression, and inline rendering of external resources. This
+    closes http://dev.plone.org/plone/ticket/8312
+    [dunlapm]
+
   * Fixed error where non-traversable resources could be registered. This closes
     http://dev.plone.org/plone/ticket/8153
     [dunlapm]

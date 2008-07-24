@@ -360,6 +360,8 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
     security.declarePrivate('compareResources')
     def compareResources(self, s1, s2):
         """Check if two resources are compatible."""
+        if s1.isExternalResource() or s2.isExternalResource():
+            return False
         for attr in self.attributes_to_compare:
             if getattr(s1, attr)() != getattr(s2, attr)():
                 return False
