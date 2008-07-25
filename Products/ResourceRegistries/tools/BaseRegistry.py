@@ -4,6 +4,7 @@ import random
 # instances (needed in BaseRegistryTool.__getitem__).
 from StringIO import StringIO
 from urllib import quote_plus
+from warnings import warn
 
 from App.Common import rfc1123_date
 from DateTime import DateTime
@@ -66,6 +67,20 @@ def getCharsetFromContentType(contenttype, default='utf-8'):
     else:
         return default
 
+def splitID(id):
+    """Splits a given ID into a Source component and an ID component to help
+    separate the source of a resource from its ID.
+    """
+    newid = ''
+    if '++resource++' in id:
+        newid = id.replace('++resource++','')
+    elif '/' in id:
+        newid = id.split('/')[-1]
+    else:
+        newid = id
+    return {'id' : newid,
+            'src' : id}
+
 class Resource(Persistent):
     security = ClassSecurityInfo()
 
@@ -74,7 +89,9 @@ class Resource(Persistent):
         extres = id.startswith('http://') or id.startswith('https://')
         if id.startswith('/') or id.endswith('/') or ('//' in id and not extres):
             raise ValueError, "Invalid Resource ID: %s" % id
-        self._data['id'] = id
+        parts = splitID(id)
+        self._data['id'] = parts['id']
+        self._data['src'] = kwargs.get('src', parts['src'])
         self._data['expression'] = kwargs.get('expression', '')
         self._data['enabled'] = kwargs.get('enabled', True)
         self._data['cookable'] = kwargs.get('cookable', True)
