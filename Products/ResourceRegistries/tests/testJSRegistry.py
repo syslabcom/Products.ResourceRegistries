@@ -847,6 +847,14 @@ class TestMergingDisabled(RegistryTestCase):
         content = str(self.portal.restrictedTraverse('portal_javascripts/simple2.js'))
         self.failUnless('blue' in content)
 
+    def testGetAuthOnlyScripts(self):
+        self.tool.registerScript('ham')
+        self.tool.registerScript('spam', authenticated=True)
+        self.tool.registerScript('toast')
+        res = self.tool.getAuthOnlyResources(self.folder)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].getId().find('spam'), 0)
+
 
 class TestUnicodeAwareness(RegistryTestCase):
 

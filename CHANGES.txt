@@ -4,6 +4,9 @@ Changelog
 2.0b1 - Unreleased
 ------------------
 
+* Add methods to get resources marked for authorized-only. This will allow
+  us to preload them from the login form.
+  [smcmahon]
 
 2.0a1 - 2009-11-16
 ------------------

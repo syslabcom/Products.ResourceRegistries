@@ -829,6 +829,16 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
 
         return results
 
+    security.declareProtected(permissions.View, 'getEvaluatedResources')
+    def getAuthOnlyResources(self, context):
+        """Return the resources marked auth-only."""
+        results = self.getCookedResources()
+
+        # filter results
+        results = [item for item in results if item.getAuthenticated()]
+
+        return results
+
     security.declareProtected(permissions.View, 'getInlineResource')
     def getInlineResource(self, item, context):
         """Return a resource as inline code, not as a file object.

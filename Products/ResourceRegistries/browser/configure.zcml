@@ -54,4 +54,12 @@
         allowed_interface=".interfaces.IKSSView"
         />
 
+    <browser:page
+        for="*"
+        name="auth_only_resources"
+        class=".authonly.authOnlyJSON"
+        permission="zope.Public"
+        allowed_interface=".interfaces.IScriptsView"
+        />
+
 </configure>

@@ -1108,6 +1108,14 @@ class TestCachingHeaders(FunctionalRegistryTestCase):
         self.assertEqual(response.getHeader('Expires'), rfc1123_date(soon.timeTime()))
         self.assertEqual(response.getHeader('Cache-Control'), 'max-age=%d' % int(days*24*3600))
 
+    def testGetAuthOnlyStylesheets(self):
+        self.tool.registerStylesheet('ham')
+        self.tool.registerStylesheet('spam', authenticated=True)
+        self.tool.registerStylesheet('toast')
+        res = self.tool.getAuthOnlyResources(self.folder)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0].getId().find('spam'), 0)
+
 
 def test_suite():
     from unittest import TestSuite, makeSuite
