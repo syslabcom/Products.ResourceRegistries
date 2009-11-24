@@ -631,6 +631,9 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                 else:
                     content = str(obj)
                     content = unicode(content, default_charset)
+                assert int(self.REQUEST.RESPONSE.getStatus()) / 100 == 2, \
+                    "Status for resource \"%s\" must be 20x, but is %s" % \
+                    (id, self.REQUEST.RESPONSE.getStatus())
 
             # Add start/end notes to the resource for better
             # understanding and debugging
