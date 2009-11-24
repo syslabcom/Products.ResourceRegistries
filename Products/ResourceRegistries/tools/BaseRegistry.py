@@ -576,7 +576,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     # response so first we must save the headers.
                     # Especially, we must delete the If-Modified-Since, because
                     # otherwise we might get a 30x response status in some cases.
-                    self.__removeCachingHeaders()
+                    self._removeCachingHeaders()
                     # Now, get the content.
                     try:
                         method = obj.__browser_default__(self.REQUEST)[1][0]
@@ -592,7 +592,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     # have a 20x response. If not, we have a problem and
                     # some browser would hang indefinitely at this point.
                     assert int(self.REQUEST.RESPONSE.getStatus()) / 100 == 2
-                    self.__restoreCachingHeaders()
+                    self._restoreCachingHeaders()
                 elif hasattr(aq_base(obj),'meta_type') and  obj.meta_type in ['DTML Method', 'Filesystem DTML Method']:
                     content = obj(client=self.aq_parent, REQUEST=self.REQUEST,
                                   RESPONSE=self.REQUEST.RESPONSE)
@@ -610,12 +610,12 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     content = unicode(str(f), contenttype)
                 # We should add more explicit type-matching checks
                 elif hasattr(aq_base(obj), 'index_html') and callable(obj.index_html):
-                    self.__removeCachingHeaders()
+                    self._removeCachingHeaders()
                     content = obj.index_html(self.REQUEST,
                                              self.REQUEST.RESPONSE)
                     if not isinstance(content, unicode):
                         content = unicode(content, default_charset)
-                    self.__restoreCachingHeaders()
+                    self._restoreCachingHeaders()
                 elif callable(obj):
                     content = obj(self.REQUEST, self.REQUEST.RESPONSE)
                     if not isinstance(content, unicode):
@@ -638,7 +638,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                 output += u'\n'
         return output
 
-    def __removeCachingHeaders(self):
+    def _removeCachingHeaders(self):
         if hasattr(self, '__orig_response_headers'):
             raise Exception("An error occured in %s, it tried to remove "
                             "caching headers twice!" % self.__class__)
@@ -653,7 +653,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         except KeyError:
             pass
 
-    def __restoreCachingHeaders(self):
+    def _restoreCachingHeaders(self):
         # Now restore the headers and for safety, check that we
         # have a 20x response. If not, we have a problem and
         # some browser would hang indefinitely at this point.
