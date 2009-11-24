@@ -610,10 +610,12 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     content = unicode(str(f), contenttype)
                 # We should add more explicit type-matching checks
                 elif hasattr(aq_base(obj), 'index_html') and callable(obj.index_html):
+                    self.__removeCachingHeaders()
                     content = obj.index_html(self.REQUEST,
                                              self.REQUEST.RESPONSE)
                     if not isinstance(content, unicode):
                         content = unicode(content, default_charset)
+                    self.__restoreCachingHeaders()
                 elif callable(obj):
                     content = obj(self.REQUEST, self.REQUEST.RESPONSE)
                     if not isinstance(content, unicode):
@@ -641,7 +643,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
             raise Exception("An error occured in %s, it tried to remove "
                             "caching headers twice!" % self.__class__)
         self.__orig_response_headers = self.REQUEST.RESPONSE.headers.copy()
-        if_modif = self.REQUEST.get_header('If-Modified-Since', None)
+        self.__if_modif = self.REQUEST.get_header('If-Modified-Since', None)
         try:
             del self.REQUEST.environ['IF_MODIFIED_SINCE']
         except KeyError:
@@ -657,7 +659,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         # some browser would hang indefinitely at this point.
         assert int(self.REQUEST.RESPONSE.getStatus()) / 100 == 2
         self.REQUEST.environ['HTTP_IF_MODIFIED_SINCE'] = \
-            self.__orig_response_headers
+            self.__if_modif
         self.REQUEST.RESPONSE.headers = self.__orig_response_headers
         del self.__orig_response_headers
 
