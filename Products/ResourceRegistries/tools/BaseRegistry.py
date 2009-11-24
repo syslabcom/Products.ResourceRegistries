@@ -576,16 +576,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     # response so first we must save the headers.
                     # Especially, we must delete the If-Modified-Since, because
                     # otherwise we might get a 30x response status in some cases.
-                    response_headers = self.REQUEST.RESPONSE.headers.copy()
-                    if_modif = self.REQUEST.get_header('If-Modified-Since', None)
-                    try:
-                        del self.REQUEST.environ['IF_MODIFIED_SINCE']
-                    except KeyError:
-                        pass
-                    try:
-                        del self.REQUEST.environ['HTTP_IF_MODIFIED_SINCE']
-                    except KeyError:
-                        pass
+                    self.__removeCachingHeaders()
                     # Now, get the content.
                     try:
                         method = obj.__browser_default__(self.REQUEST)[1][0]
@@ -601,8 +592,7 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     # have a 20x response. If not, we have a problem and
                     # some browser would hang indefinitely at this point.
                     assert int(self.REQUEST.RESPONSE.getStatus()) / 100 == 2
-                    self.REQUEST.environ['HTTP_IF_MODIFIED_SINCE'] = if_modif
-                    self.REQUEST.RESPONSE.headers = response_headers
+                    self.__restoreCachingHeaders()
                 elif hasattr(aq_base(obj),'meta_type') and  obj.meta_type in ['DTML Method', 'Filesystem DTML Method']:
                     content = obj(client=self.aq_parent, REQUEST=self.REQUEST,
                                   RESPONSE=self.REQUEST.RESPONSE)
@@ -645,6 +635,31 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
                     output += self.finalizeContent(resources[id], content)
                 output += u'\n'
         return output
+
+    def __removeCachingHeaders(self):
+        if hasattr(self, '__orig_response_headers'):
+            raise Exception("An error occured in %s, it tried to remove "
+                            "caching headers twice!" % self.__class__)
+        self.__orig_response_headers = self.REQUEST.RESPONSE.headers.copy()
+        if_modif = self.REQUEST.get_header('If-Modified-Since', None)
+        try:
+            del self.REQUEST.environ['IF_MODIFIED_SINCE']
+        except KeyError:
+            pass
+        try:
+            del self.REQUEST.environ['HTTP_IF_MODIFIED_SINCE']
+        except KeyError:
+            pass
+
+    def __restoreCachingHeaders(self):
+        # Now restore the headers and for safety, check that we
+        # have a 20x response. If not, we have a problem and
+        # some browser would hang indefinitely at this point.
+        assert int(self.REQUEST.RESPONSE.getStatus()) / 100 == 2
+        self.REQUEST.environ['HTTP_IF_MODIFIED_SINCE'] = \
+            self.__orig_response_headers
+        self.REQUEST.RESPONSE.headers = self.__orig_response_headers
+        del self.__orig_response_headers
 
     #
     # ZMI Methods
