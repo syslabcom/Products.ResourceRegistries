@@ -639,11 +639,11 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         return output
 
     def _removeCachingHeaders(self):
-        if hasattr(self, '__orig_response_headers'):
+        if hasattr(self, '_v_orig_response_headers'):
             raise Exception("An error occured in %s, it tried to remove "
                             "caching headers twice!" % self.__class__)
-        self.__orig_response_headers = self.REQUEST.RESPONSE.headers.copy()
-        self.__if_modif = self.REQUEST.get_header('If-Modified-Since', None)
+        self._v_orig_response_headers = self.REQUEST.RESPONSE.headers.copy()
+        self._v_if_modif = self.REQUEST.get_header('If-Modified-Since', None)
         try:
             del self.REQUEST.environ['IF_MODIFIED_SINCE']
         except KeyError:
@@ -659,9 +659,9 @@ class BaseRegistryTool(UniqueObject, SimpleItem, PropertyManager, Cacheable):
         # some browser would hang indefinitely at this point.
         assert int(self.REQUEST.RESPONSE.getStatus()) / 100 == 2
         self.REQUEST.environ['HTTP_IF_MODIFIED_SINCE'] = \
-            self.__if_modif
-        self.REQUEST.RESPONSE.headers = self.__orig_response_headers
-        del self.__orig_response_headers
+            self._v_if_modif
+        self.REQUEST.RESPONSE.headers = self._v_orig_response_headers
+        del self._v_orig_response_headers
 
     #
     # ZMI Methods
