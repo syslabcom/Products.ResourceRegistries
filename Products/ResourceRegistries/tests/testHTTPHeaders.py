@@ -56,6 +56,7 @@ class TestHTTPHeaders(FunctionalRegistryTestCase):
         self.assertEqual(response.getStatus(), 200)  # this should send a 200 when things are fixed, but right now should send a 304
 
         # And for OFS.Image.File
+	# This test triggers the failure reported in #9849
         self.portal.manage_addFile('testFile')
         self.tool.registerStylesheet('testFile')
         response = self.publish(self.toolpath+'/testFile', env={'IF_MODIFIED_SINCE': rfc1123_date((DateTime() + 60.0/(24.0*3600.0)))})
