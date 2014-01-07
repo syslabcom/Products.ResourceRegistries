@@ -242,7 +242,7 @@ class CSSRegistryTool(BaseRegistryTool):
                                 cacheable, conditionalcomment, authenticated,
                                 applyPrefix=applyPrefix, bundle=bundle)
         if REQUEST:
-            REQUEST.RESPONSE.redirect(REQUEST['HTTP_REFERER'])
+            REQUEST.RESPONSE.redirect("manage_workspace")
 
     security.declareProtected(permissions.ManagePortal, 'manage_saveStylesheets')
     def manage_saveStylesheets(self, REQUEST=None):
@@ -250,6 +250,9 @@ class CSSRegistryTool(BaseRegistryTool):
 
         Updates the whole sequence. For editing and reordering.
         """
+        if REQUEST and not REQUEST.form:
+            REQUEST.RESPONSE.redirect("manage_workspace")
+            return
         debugmode = REQUEST.get('debugmode', False)
         self.setDebugMode(debugmode)
         records = REQUEST.get('stylesheets', [])
@@ -276,14 +279,14 @@ class CSSRegistryTool(BaseRegistryTool):
         self.resources = tuple(stylesheets)
         self.cookResources()
         if REQUEST:
-            REQUEST.RESPONSE.redirect(REQUEST['HTTP_REFERER'])
+            REQUEST.RESPONSE.redirect("manage_workspace")
 
     security.declareProtected(permissions.ManagePortal, 'manage_removeStylesheet')
     def manage_removeStylesheet(self, id, REQUEST=None):
         """Remove stylesheet from the ZMI."""
         self.unregisterResource(id)
         if REQUEST:
-            REQUEST.RESPONSE.redirect(REQUEST['HTTP_REFERER'])
+            REQUEST.RESPONSE.redirect("manage_workspace")
 
     #
     # Protected Methods
